@@ -70,7 +70,7 @@ const textos = {
             "Eso dice mucho de ti."
         ],
         en:[
-            "System active...",
+            "System active.",
             "Presence detected.",
             "You haven't done anything, yet...",
             "I am watching you.",
@@ -150,7 +150,7 @@ function bateria(cb){
         const lvl=Math.round(b.level*100);
         let s=idioma==="es"?textos.bateria.es+lvl+"%":textos.bateria.en+lvl+"%";
         if(b.charging) s+=" "+(idioma==="es"?"(cargando)":"(charging)");
-        cb(s);
+        linea(s,cb);
     });
 }
 
