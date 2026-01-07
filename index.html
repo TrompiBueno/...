@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>...</title>
+<style>
+body{
+    margin:0;
+    background:#000;
+    color:#d0d0d0;
+    font-family: monospace;
+    height:100vh;
+    overflow:hidden;
+}
+#pantalla{
+    padding:22px;
+    white-space:pre-wrap;
+    line-height:1.8;
+    font-size:16px;
+    opacity:1;
+    transition:opacity 6s ease;
+}
+.glitch{
+    animation:glitch 0.15s infinite;
+}
+@keyframes glitch{
+    0%{text-shadow:2px 0 red,-2px 0 cyan;}
+    50%{text-shadow:-2px 0 red,2px 0 cyan;}
+    100%{text-shadow:2px 0 red,-2px 0 cyan;}
+}
+</style>
+</head>
+<body>
+<div id="pantalla"></div>
+
+<script>
+const p=document.getElementById("pantalla");
+
+/* DETECTAR IDIOMA */
+const idioma=navigator.language.startsWith("es") ? "es" : "en";
+
+/* FUNCION PARA ESCRIBIR LÍNEA */
+function linea(t, cb, g=false){
+    const s=document.createElement("span");
+    if(g) s.classList.add("glitch");
+    p.appendChild(s);
+    let i=0;
+    const w=setInterval(()=>{
+        s.textContent+=t[i];
+        i++;
+        if(i>=t.length){
+            clearInterval(w);
+            p.appendChild(document.createTextNode("\n\n"));
+            if(cb) setTimeout(cb,900);
+        }
+    },35+Math.random()*70);
+}
+
+/* TEXTOS SEGÚN IDIOMA */
+const textos = {
+    inicio: {
+        es:[
+            "Sistema activado...",
+            "Presencia detectada.",
+            "No has hecho nada, y aun así…",
+            "Te observo.",
+            "Cada gesto, cada decisión.",
+            "No puedes esconder nada.",
+            "Sigues leyendo.",
+            "Eso dice mucho de ti."
+        ],
+        en:[
+            "System active...",
+            "Presence detected.",
+            "You haven't done anything, yet...",
+            "I am watching you.",
+            "Every gesture, every choice.",
+            "You cannot hide anything.",
+            "You keep reading.",
+            "That says a lot about you."
+        ]
+    },
+    luz: {
+        es_dark:["Debería estar oscuro.","Pero donde estás hay luz.","No es natural.","Suficiente para que te vea."],
+        es_light:["El lugar donde estás está iluminado.","Esa luz me deja observarte con claridad."],
+        en_dark:["It should be dark.","But where you are there is light.","It is unnatural.","Enough to see you."],
+        en_light:["The place you are is illuminated.","That light lets me watch you clearly."]
+    },
+    bateria: {es:"Batería al ", en:"Battery at "},
+    final: {es:["No he necesitado permiso para saber esto.","Ya me he metido en ti.","Ya nunca saldré."],
+            en:["I did not need permission to know this.","I have entered you.","I will never leave."]},
+    postFinal: {es:["Todo a tu alrededor se ha vuelto distinto.","Sientes una presencia que respira junto a ti.","No hay vuelta atrás."],
+                en:["Everything around you has changed.","You feel a presence breathing beside you.","There is no turning back."]}
+};
+
+/* LUZ */
+function luz(){
+    const h=new Date().getHours();
+    if(h>=22||h<=6){
+        return idioma==="es"?textos.luz.es_dark:textos.luz.en_dark;
+    } else {
+        return idioma==="es"?textos.luz.es_light:textos.luz.en_light;
+    }
+}
+
+/* DATOS REALES */
+const ua=navigator.userAgent.toLowerCase();
+const zona=Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+function dispositivo(){
+    if(ua.includes("android")) return idioma==="es"?"Tienes un Android.":"You have an Android.";
+    if(ua.includes("iphone")) return idioma==="es"?"Tienes un iPhone.":"You have an iPhone.";
+    if(ua.includes("windows")) return idioma==="es"?"Estás en Windows.":"You are on Windows.";
+    if(ua.includes("mac")) return idioma==="es"?"Estás en un Mac.":"You are on a Mac.";
+    if(ua.includes("linux")) return idioma==="es"?"Estás en Linux.":"You are on Linux.";
+    return idioma==="es"?"Tu dispositivo es extraño para mí.":"Your device is strange to me.";
+}
+
+function navegador(){
+    if(ua.includes("chrome") && !ua.includes("edg") && !ua.includes("opr")) return idioma==="es"?"Usas Chrome.":"You use Chrome.";
+    if(ua.includes("firefox")) return idioma==="es"?"Usas Firefox.":"You use Firefox.";
+    if(ua.includes("edg")) return idioma==="es"?"Usas Edge.":"You use Edge.";
+    if(ua.includes("safari") && !ua.includes("chrome")) return idioma==="es"?"Usas Safari.":"You use Safari.";
+    if(ua.includes("opr") || ua.includes("opera")) return idioma==="es"?"Usas Opera.":"You use Opera.";
+    return idioma==="es"?"Tu navegador es extraño para mí.":"Your browser is strange to me.";
+}
+
+function idiomaHumano(){
+    if(idioma==="es") return "Piensas y lees en español.";
+    return "You think and read in English.";
+}
+
+function lugar(){
+    if(zona.includes("Madrid")||zona.includes("Barcelona")) return idioma==="es"?"Parece que estás en España.":"It seems you are in Spain.";
+    if(zona.includes("Mexico")) return idioma==="es"?"Parece que estás en México.":"It seems you are in Mexico.";
+    if(zona.includes("Argentina")) return idioma==="es"?"Parece que estás en Argentina.":"It seems you are in Argentina.";
+    return idioma==="es"?"Estás en un lugar reconocible para mí.":"You are in a place recognizable to me.";
+}
+
+function horaInquietante(){
+    const d=new Date();
+    const h=d.getHours();
+    const m=d.getMinutes();
+    return idioma==="es"?"Son las "+h+" horas y "+m+" minutos… algo ha cambiado.":"It is "+h+" hours and "+m+" minutes… something has changed.";
+}
+
+function bateria(cb){
+    if(!navigator.getBattery){cb(); return;}
+    navigator.getBattery().then(b=>{
+        const lvl=Math.round(b.level*100);
+        let s=idioma==="es"?textos.bateria.es+lvl+"%":textos.bateria.en+lvl+"%";
+        if(b.charging) s+=" "+(idioma==="es"?"(cargando)":"(charging)");
+        cb(s);
+    });
+}
+
+/* INICIO NARRATIVA */
+let idx=0;
+function start(){
+    if(idx>=textos.inicio[idioma].length){ setTimeout(revelarLuz,1200); return;}
+    linea(textos.inicio[idioma][idx],()=>{idx++;start();});
+}
+setTimeout(start,1000);
+
+/* LUZ */
+function revelarLuz(){
+    const l=luz();
+    let j=0;
+    function s(){
+        if(j>=l.length){ setTimeout(revelarDatos,1200); return; }
+        linea(l[j],()=>{j++;s();});
+    }
+    s();
+}
+
+/* DATOS */
+function revelarDatos(){
+    linea(dispositivo(),()=>{
+        linea(navegador(),()=>{
+            linea(idiomaHumano(),()=>{
+                linea(lugar(),()=>{
+                    linea(horaInquietante(),()=>{
+                        bateria(finalInquietante);
+                    });
+                });
+            });
+        });
+    });
+}
+
+/* FINAL INQUIETANTE */
+function finalInquietante(){
+    const f=textos.final[idioma];
+    linea(f[0],()=>{
+        linea(f[1],()=>{
+            linea(f[2],postFinal,true);
+        });
+    },true);
+}
+
+/* POST FINAL TENSIONANTE */
+function postFinal(){
+    const f=textos.postFinal[idioma];
+    setTimeout(()=>{
+        linea(f[0],()=>{
+            linea(f[1],()=>{
+                linea(f[2],cerrarTodo,true);
+            });
+        }, true);
+    },4000);
+}
+
+/* CIERRE */
+function cerrarTodo(){
+    p.style.transition="opacity 5s ease";
+    p.style.opacity="0";
+    setTimeout(()=>{
+        document.body.innerHTML="";
+        window.close();
+    },5000);
+}
+</script>
+</body>
+</html>
